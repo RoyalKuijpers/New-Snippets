@@ -14,7 +14,8 @@ chrome.runtime.onInstalled.addListener((details) => {
       settings: {
         theme: 'light',
         defaultLanguage: 'javascript'
-      }
+      },
+      nextSnippetId: 1
     }, () => {
       console.log('Default storage initialized');
     });
@@ -33,10 +34,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       return true; // Keep channel open for async response
       
     case 'saveSnippet':
-      chrome.storage.sync.get(['snippets'], (result) => {
+      chrome.storage.sync.get(['snippets', 'nextSnippetId'], (result) => {
         const snippets = result.snippets || [];
-        snippets.push(request.snippet);
-        chrome.storage.sync.set({ snippets }, () => {
+        const nextId = result.nextSnippetId || 1;
+        
+        const snippetWithId = { ...request.snippet, id: nextId };
+        snippets.push(snippetWithId);
+        
+        chrome.storage.sync.set({ 
+          snippets, 
+          nextSnippetId: nextId + 1 
+        }, () => {
           sendResponse({ success: true, snippets });
         });
       });
@@ -45,7 +53,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'deleteSnippet':
       chrome.storage.sync.get(['snippets'], (result) => {
         const snippets = result.snippets || [];
-        const filtered = snippets.filter((_, index) => index !== request.index);
+        const filtered = snippets.filter(snippet => snippet.id !== request.snippetId);
         chrome.storage.sync.set({ snippets: filtered }, () => {
           sendResponse({ success: true, snippets: filtered });
         });

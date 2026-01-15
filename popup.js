@@ -53,15 +53,15 @@ function displaySnippets(snippets) {
     emptyState.classList.add('hidden');
     snippetsList.classList.remove('hidden');
     
-    snippets.forEach((snippet, index) => {
-      const snippetCard = createSnippetCard(snippet, index);
+    snippets.forEach((snippet) => {
+      const snippetCard = createSnippetCard(snippet);
       snippetsList.appendChild(snippetCard);
     });
   }
 }
 
 // Create a snippet card element
-function createSnippetCard(snippet, index) {
+function createSnippetCard(snippet) {
   const card = document.createElement('fluent-card');
   card.className = 'snippet-card';
   
@@ -95,7 +95,7 @@ function createSnippetCard(snippet, index) {
   const deleteButton = document.createElement('fluent-button');
   deleteButton.textContent = 'Delete';
   deleteButton.appearance = 'stealth';
-  deleteButton.addEventListener('click', () => deleteSnippet(index));
+  deleteButton.addEventListener('click', () => deleteSnippet(snippet.id));
   
   actions.appendChild(copyButton);
   actions.appendChild(deleteButton);
@@ -118,20 +118,26 @@ function saveSnippet() {
     return;
   }
   
-  const snippet = {
-    title,
-    language,
-    code,
-    createdAt: new Date().toISOString()
-  };
-  
   showLoading(true);
   
-  chrome.storage.sync.get(['snippets'], (result) => {
+  chrome.storage.sync.get(['snippets', 'nextSnippetId'], (result) => {
     const snippets = result.snippets || [];
-    snippets.unshift(snippet); // Add to beginning of array
+    const nextId = result.nextSnippetId || 1;
     
-    chrome.storage.sync.set({ snippets }, () => {
+    const snippetWithId = {
+      id: nextId,
+      title,
+      language,
+      code,
+      createdAt: new Date().toISOString()
+    };
+    
+    snippets.unshift(snippetWithId); // Add to beginning of array
+    
+    chrome.storage.sync.set({ 
+      snippets,
+      nextSnippetId: nextId + 1
+    }, () => {
       if (chrome.runtime.lastError) {
         showNotification('Error saving snippet: ' + chrome.runtime.lastError.message, 'error');
         showLoading(false);
@@ -141,7 +147,7 @@ function saveSnippet() {
       // Clear form
       snippetTitle.value = '';
       snippetCode.value = '';
-      snippetLanguage.selectedIndex = 0;
+      snippetLanguage.value = 'javascript'; // Set explicitly instead of using selectedIndex
       
       // Reload snippets
       loadSnippets();
@@ -151,7 +157,7 @@ function saveSnippet() {
 }
 
 // Delete a snippet
-function deleteSnippet(index) {
+function deleteSnippet(snippetId) {
   if (!confirm('Are you sure you want to delete this snippet?')) {
     return;
   }
@@ -160,9 +166,9 @@ function deleteSnippet(index) {
   
   chrome.storage.sync.get(['snippets'], (result) => {
     const snippets = result.snippets || [];
-    snippets.splice(index, 1);
+    const filtered = snippets.filter(snippet => snippet.id !== snippetId);
     
-    chrome.storage.sync.set({ snippets }, () => {
+    chrome.storage.sync.set({ snippets: filtered }, () => {
       if (chrome.runtime.lastError) {
         showNotification('Error deleting snippet: ' + chrome.runtime.lastError.message, 'error');
         showLoading(false);
