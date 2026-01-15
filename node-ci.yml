@@ -1,0 +1,34 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x] # Gebruik Node.js versie 20
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm' # Activeer npm caching voor snellere builds
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run ESLint (Linting)
+      run: npm run lint # Vereist dat u 'lint' script definieert in package.json
+
+    - name: Run Unit Tests
+      run: npm test # Vereist dat u 'test' script definieert in package.json
