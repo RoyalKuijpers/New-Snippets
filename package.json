@@ -1,0 +1,25 @@
+{
+  "name": "new-snippets",
+  "version": "1.0.0",
+  "description": "A modern, synchronized browser extension for managing code snippets (Manifest V3, Fluent UI v2).",
+  "main": "service_worker.js",
+  "scripts": {
+    "postinstall": "node scripts/copy-dependencies.js",
+    "build": "node scripts/copy-dependencies.js && echo 'Extension ready for loading'",
+    "dev": "echo 'Load extension from current directory in browser'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "browser-extension",
+    "chrome-extension",
+    "manifest-v3",
+    "snippets",
+    "code-snippets",
+    "fluent-ui"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fluentui/web-components": "^2.5.16"
+  }
+}
