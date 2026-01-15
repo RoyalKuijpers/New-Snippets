@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New-Snippets</title>
+  <link rel="stylesheet" href="popup.css">
+  <script type="module" src="node_modules/@fluentui/web-components/dist/web-components.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>
+        <fluent-design-system-provider use-defaults>
+          New-Snippets
+        </fluent-design-system-provider>
+      </h1>
+    </header>
+
+    <main>
+      <fluent-design-system-provider use-defaults>
+        <div class="add-snippet-section">
+          <h2>Add New Snippet</h2>
+          <div class="form-group">
+            <fluent-text-field id="snippet-title" placeholder="Snippet title">
+              Title:
+            </fluent-text-field>
+          </div>
+          
+          <div class="form-group">
+            <label for="snippet-language">Language:</label>
+            <fluent-select id="snippet-language">
+              <fluent-option value="javascript">JavaScript</fluent-option>
+              <fluent-option value="python">Python</fluent-option>
+              <fluent-option value="html">HTML</fluent-option>
+              <fluent-option value="css">CSS</fluent-option>
+              <fluent-option value="typescript">TypeScript</fluent-option>
+              <fluent-option value="java">Java</fluent-option>
+              <fluent-option value="csharp">C#</fluent-option>
+              <fluent-option value="other">Other</fluent-option>
+            </fluent-select>
+          </div>
+
+          <div class="form-group">
+            <fluent-text-area id="snippet-code" placeholder="Paste your code snippet here..." resize="vertical">
+              Code:
+            </fluent-text-area>
+          </div>
+
+          <div class="form-actions">
+            <fluent-button id="save-snippet" appearance="accent">
+              Save Snippet
+            </fluent-button>
+          </div>
+        </div>
+
+        <div class="snippets-list-section">
+          <h2>My Snippets</h2>
+          <div id="snippets-container" class="snippets-container">
+            <fluent-progress-ring id="loading" class="loading hidden"></fluent-progress-ring>
+            <div id="empty-state" class="empty-state">
+              <p>No snippets yet. Add your first snippet above!</p>
+            </div>
+            <div id="snippets-list" class="snippets-list"></div>
+          </div>
+        </div>
+      </fluent-design-system-provider>
+    </main>
+
+    <footer>
+      <fluent-design-system-provider use-defaults>
+        <p class="footer-text">New-Snippets v1.0.0 - Powered by Fluent UI</p>
+      </fluent-design-system-provider>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
