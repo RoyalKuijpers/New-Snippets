@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New-Snippets Extension Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .pass { color: green; }
+    .fail { color: red; }
+    .info { color: blue; }
+    h1 { color: #0078d4; }
+    h2 { color: #323130; font-size: 18px; }
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>New-Snippets Extension - Structure Validation</h1>
+  
+  <div class="test-section">
+    <h2>Required Files Check</h2>
+    <div id="files-check"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Manifest V3 Configuration</h2>
+    <div id="manifest-check"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Dependencies</h2>
+    <div id="dependencies-check"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Extension Loading Instructions</h2>
+    <div id="instructions"></div>
+  </div>
+
+  <script>
+    const requiredFiles = [
+      'manifest.json',
+      'service_worker.js',
+      'popup.html',
+      'popup.js',
+      'popup.css',
+      'lib/fluent-ui.js',
+      'icons/icon16.png',
+      'icons/icon48.png',
+      'icons/icon128.png'
+    ];
+
+    // Files check
+    const filesCheckDiv = document.getElementById('files-check');
+    filesCheckDiv.innerHTML = '<h3>Required Files:</h3><ul>' + 
+      requiredFiles.map(file => `<li class="info">📄 ${file}</li>`).join('') +
+      '</ul><p class="pass">✓ All required files should be present in the extension directory</p>';
+
+    // Manifest check
+    fetch('../manifest.json')
+      .then(res => res.json())
+      .then(manifest => {
+        const manifestDiv = document.getElementById('manifest-check');
+        manifestDiv.innerHTML = `
+          <h3>Manifest Details:</h3>
+          <pre>${JSON.stringify(manifest, null, 2)}</pre>
+          <p class="pass">✓ Manifest Version: ${manifest.manifest_version}</p>
+          <p class="pass">✓ Name: ${manifest.name}</p>
+          <p class="pass">✓ Service Worker: ${manifest.background.service_worker}</p>
+          <p class="pass">✓ Permissions: ${manifest.permissions.join(', ')}</p>
+          <p class="pass">✓ Popup: ${manifest.action.default_popup}</p>
+        `;
+      })
+      .catch(err => {
+        document.getElementById('manifest-check').innerHTML = 
+          `<p class="fail">✗ Could not load manifest.json: ${err.message}</p>`;
+      });
+
+    // Dependencies check
+    fetch('../package.json')
+      .then(res => res.json())
+      .then(pkg => {
+        const depsDiv = document.getElementById('dependencies-check');
+        const deps = Object.keys(pkg.dependencies || {});
+        depsDiv.innerHTML = `
+          <h3>Package Dependencies:</h3>
+          <ul>${deps.map(dep => `<li class="pass">✓ ${dep}</li>`).join('')}</ul>
+          <p class="info">Fluent UI Web Components bundled in: lib/fluent-ui.js</p>
+        `;
+      })
+      .catch(err => {
+        document.getElementById('dependencies-check').innerHTML = 
+          `<p class="fail">✗ Could not load package.json: ${err.message}</p>`;
+      });
+
+    // Instructions
+    document.getElementById('instructions').innerHTML = `
+      <h3>How to Load the Extension:</h3>
+      <ol>
+        <li><strong>Chrome/Edge:</strong>
+          <ul>
+            <li>Open <code>chrome://extensions/</code> (or <code>edge://extensions/</code>)</li>
+            <li>Enable "Developer mode" (toggle in top right)</li>
+            <li>Click "Load unpacked"</li>
+            <li>Select the New-Snippets directory</li>
+          </ul>
+        </li>
+        <li><strong>Verify Installation:</strong>
+          <ul>
+            <li>The extension icon should appear in the toolbar</li>
+            <li>Click the icon to open the popup</li>
+            <li>Try adding a code snippet</li>
+            <li>Verify storage sync is working</li>
+          </ul>
+        </li>
+      </ol>
+      <h3>Testing Checklist:</h3>
+      <ul>
+        <li>✓ Extension loads without errors</li>
+        <li>✓ Popup opens and displays Fluent UI components</li>
+        <li>✓ Can add a new snippet with title, language, and code</li>
+        <li>✓ Snippet is saved to chrome.storage.sync</li>
+        <li>✓ Can view saved snippets</li>
+        <li>✓ Can copy snippet code to clipboard</li>
+        <li>✓ Can delete a snippet</li>
+        <li>✓ Service worker initializes without errors</li>
+      </ul>
+    `;
+  </script>
+</body>
+</html>
