@@ -8,6 +8,7 @@
     "build": "node scripts/copy-dependencies.js && echo 'Extension ready for loading'",
     "dev": "echo 'Load extension from current directory in browser'",
     "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "echo \"Error: lint command not specified\" && exit 1"
   },
   "keywords": [
     "browser-extension",
