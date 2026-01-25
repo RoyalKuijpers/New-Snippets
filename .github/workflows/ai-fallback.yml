@@ -1,0 +1,76 @@
+# General example workflow showing a fallback pattern for AI/content-generation steps
+name: AI-safe workflow
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ai-safe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # === Example: Safe AI/content-generation step with fallback for content-filtering ===
+      # Replace the placeholder ai-cli command with your actual AI command or action.
+      - name: Run AI content-generation (safe wrapper)
+        id: ai_step
+        env:
+          GITHUB_OUTPUT: ${{ github.output }}
+        run: |
+          mkdir -p ai-logs
+          set -o pipefail
+
+          # Replace this with your actual AI invocation. Capture stdout & stderr to files.
+          # stdout -> ai-logs/ai-output.json, stderr -> ai-logs/ai.err
+          ai-cli generate --input input.json > ai-logs/ai-output.json 2> ai-logs/ai.err || true
+
+          # Inspect stderr for common content-filtering/blocking phrases (customize as needed)
+          if grep -Ei "content filter|blocked by|content blocked|blocked by policy|policy violation|forbidden|abuse|rate limit" ai-logs/ai.err >/dev/null 2>&1; then
+            echo "AI step appears to be blocked by content filtering. Saving diagnostics."
+            echo "ai_status=blocked" >> $GITHUB_OUTPUT
+            echo "---- ai.err (truncated) ----"
+            head -n 80 ai-logs/ai.err || true
+            # Exit 0 so the job continues; downstream steps can branch on ai_status
+            exit 0
+          fi
+
+          # If stderr contains other content (non-filtering errors), fail so maintainers are alerted
+          if [ -s ai-logs/ai.err ]; then
+            echo "AI step failed for reasons other than content filtering."
+            echo "ai_status=error" >> $GITHUB_OUTPUT
+            echo "---- ai.err (truncated) ----"
+            head -n 120 ai-logs/ai.err || true
+            exit 1
+          fi
+
+          # Success path
+          echo "ai_status=success" >> $GITHUB_OUTPUT
+          echo "AI step completed successfully."
+
+      # Example consumer step that only runs when AI succeeded
+      - name: Use AI output
+        if: steps.ai_step.outputs.ai_status == 'success'
+        run: |
+          echo "AI succeeded — continuing with AI output"
+          # Example: process ai-logs/ai-output.json
+
+      # Fallback behavior when AI was blocked
+      - name: Handle AI blocked case (fallback)
+        if: steps.ai_step.outputs.ai_status == 'blocked'
+        run: |
+          echo "AI was blocked by content filters — using fallback behavior"
+          mkdir -p ai-logs
+          # Create a minimal placeholder output so downstream jobs/tools have something
+          echo "{}" > ai-logs/ai-output-placeholder.json
+
+      # Always upload full logs/artifacts for post-mortem
+      - name: Upload AI logs and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-logs
+          path: ai-logs
